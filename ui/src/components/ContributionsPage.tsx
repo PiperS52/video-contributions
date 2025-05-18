@@ -3,19 +3,20 @@ import { useGetContributionsQuery } from '../services/contributions';
 import Box from '@mui/material/Box';
 import styles from './styles.module.scss';
 import TextField from '@mui/material/TextField';
-import MenuItem from '@mui/material/MenuItem';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import Grid from '@mui/material/Grid2';
+import Button from '@mui/material/Button';
 import { Typography } from '@mui/material';
 
 export const ContributionsPage: React.FC = () => {
   const [skipParam, setSkip] = useState<number>(0);
   const limit = 14;
   const [title, setTitle] = useState<string>('');
+  const [owner, setOwner] = useState<string>('');
 
   const { contributions, isLoading, isError } = useGetContributionsQuery(
-    { title, skip: skipParam, limit },
+    { title, owner, skip: skipParam, limit },
     {
       selectFromResult: ({ data, isLoading, isError }) => ({
         contributions: data?.contributions ?? [],
@@ -28,11 +29,51 @@ export const ContributionsPage: React.FC = () => {
   );
 
   console.log('contributions', contributions);
+  const statusOptions = ['Complete', 'Scheduled', 'Active'];
 
   return (
     <>
       <div>
         <h1>Video Contributions</h1>
+        <div className="search-bar">
+          <Box
+            component="form"
+            sx={{ '& > :not(style)': { m: 1, width: '25ch' } }}
+            noValidate
+            autoComplete="off"
+          >
+            <TextField
+              className="title-search-input"
+              id="title-search-input"
+              label="Search by title"
+              variant="outlined"
+              value={title}
+              fullWidth
+              type="string"
+              onChange={(e) => setTitle(String(e.target.value))}
+            />
+            <TextField
+              className="owner-search-input"
+              id="owner-search-input"
+              label="Search by owner"
+              variant="outlined"
+              value={owner}
+              fullWidth
+              type="string"
+              onChange={(e) => setOwner(String(e.target.value))}
+            />
+          </Box>
+          <Button
+            variant="contained"
+            size="medium"
+            onClick={() => {
+              setTitle('');
+              setOwner('');
+            }}
+          >
+            Clear filters
+          </Button>
+        </div>
         {!contributions.length ? (
           <p>No contributions found</p>
         ) : (

@@ -5,12 +5,12 @@ export const contributionsApi = api.injectEndpoints({
   endpoints: (build) => ({
     getContributions: build.query<
       ContributionsResponse,
-      { title: string; skip: number; limit: number }
+      { title: string; owner: string; skip: number; limit: number }
     >({
-      query: ({ title, skip, limit }) => ({
+      query: ({ title, owner, skip, limit }) => ({
         url: `/contributions`,
         method: 'GET',
-        params: { title, skip, limit },
+        params: { title, owner, skip, limit },
       }),
       providesTags: ['Contributions'],
     }),
