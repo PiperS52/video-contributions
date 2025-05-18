@@ -1,0 +1,21 @@
+// .results-container {
+//   display: grid;
+//   grid-template-columns: repeat(1, minmax(0, 1fr));
+//   grid-gap: 2rem;
+//   gap: 2rem;
+//   flex-direction: column;
+
+//   @media only screen and (min-width: 1280px) {
+//     grid-template-columns: repeat(3, minmax(0, 1fr));
+//   }
+
+//   @media only screen and (min-width: 1600px) {
+//     grid-template-columns: repeat(4, minmax(0, 1fr));
+//   }
+// }
+
+.card {
+  background-color: #fff;
+  height: 20em;
+  width: 20em;
+}

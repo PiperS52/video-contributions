@@ -7,3 +7,7 @@ node_modules/
 
 /build
 __pycache__
+
+dist
+dist-ssr
+*.local
