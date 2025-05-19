@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useGetContributionsQuery } from '../services/contributions';
 import Box from '@mui/material/Box';
 import styles from './styles.module.scss';
@@ -7,26 +7,39 @@ import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import Grid from '@mui/material/Grid2';
 import Button from '@mui/material/Button';
+import Pagination from '@mui/material/Pagination';
 import { Typography } from '@mui/material';
+import { set } from 'date-fns';
 
 export const ContributionsPage: React.FC = () => {
-  const [skipParam, setSkip] = useState<number>(0);
+  const [skipParam, setSkipParam] = useState<number>(0);
   const limit = 14;
   const [title, setTitle] = useState<string>('');
   const [owner, setOwner] = useState<string>('');
 
-  const { contributions, isLoading, isError } = useGetContributionsQuery(
-    { title, owner, skip: skipParam, limit },
-    {
-      selectFromResult: ({ data, isLoading, isError }) => ({
-        contributions: data?.contributions ?? [],
-        isLoading,
-        isError,
-      }),
-      // skip: !title,
-      refetchOnMountOrArgChange: true,
+  const { contributions, totalCount, isLoading, isError } =
+    useGetContributionsQuery(
+      { title, owner, skip: skipParam, limit },
+      {
+        selectFromResult: ({ data, isLoading, isError }) => ({
+          contributions: data?.contributions ?? [],
+          totalCount: data?.total ?? 0,
+          isLoading,
+          isError,
+        }),
+        // skip: !title,
+        refetchOnMountOrArgChange: true,
+      }
+    );
+
+  useEffect(() => {
+    if (title) {
+      setSkipParam(0);
     }
-  );
+    if (owner) {
+      setSkipParam(0);
+    }
+  }, [title, owner]);
 
   console.log('contributions', contributions);
   const statusOptions = ['Complete', 'Scheduled', 'Active'];
@@ -114,6 +127,21 @@ export const ContributionsPage: React.FC = () => {
             </Grid>
           </Box>
         )}
+        <Typography>
+          Page: {skipParam / limit + 1} of {Math.ceil(totalCount / limit)}
+        </Typography>
+        <div
+          className="pagination"
+          style={{ display: 'flex', justifyContent: 'center', marginTop: 16 }}
+        >
+          <Pagination
+            count={Math.ceil(totalCount / limit)}
+            page={skipParam / limit + 1}
+            onChange={(event, value) => {
+              setSkipParam((value - 1) * limit);
+            }}
+          />
+        </div>
       </div>
     </>
   );
