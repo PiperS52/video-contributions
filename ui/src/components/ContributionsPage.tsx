@@ -124,6 +124,19 @@ export const ContributionsPage: React.FC = () => {
                   </Card>
                 </Grid>
               ))}
+              {contributions.length === 2 && (
+                <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+                  <Card
+                    className={styles.card}
+                    variant="outlined"
+                    sx={{
+                      border: 'none',
+                      boxShadow: 'none',
+                      background: 'transparent',
+                    }}
+                  />{' '}
+                </Grid>
+              )}
             </Grid>
           </Box>
         )}
