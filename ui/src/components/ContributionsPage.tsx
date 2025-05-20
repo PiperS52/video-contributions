@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useGetContributionsQuery } from '../services/contributions';
 import Box from '@mui/material/Box';
 import styles from './styles.module.scss';
@@ -8,14 +8,14 @@ import CardContent from '@mui/material/CardContent';
 import Grid from '@mui/material/Grid2';
 import Button from '@mui/material/Button';
 import Pagination from '@mui/material/Pagination';
+import CircularProgress from '@mui/material/CircularProgress';
 import { MenuItem, Typography } from '@mui/material';
+import { useContributionFilters } from '../hooks/use-contribution-filters';
 
 export const ContributionsPage: React.FC = () => {
   const [skipParam, setSkipParam] = useState<number>(0);
   const limit = 14;
-  const [title, setTitle] = useState<string>('');
-  const [owner, setOwner] = useState<string>('');
-  const [status, setStatus] = useState<string>('');
+  const { title, owner, status, setFilters } = useContributionFilters();
 
   const { contributions, totalCount, isLoading, isError } =
     useGetContributionsQuery(
@@ -30,6 +30,10 @@ export const ContributionsPage: React.FC = () => {
         refetchOnMountOrArgChange: true,
       }
     );
+
+  const handleClearFilters = useCallback(() => {
+    setFilters({ title: null, owner: null, status: null });
+  }, [setFilters]);
 
   useEffect(() => {
     if (title) {
@@ -65,7 +69,9 @@ export const ContributionsPage: React.FC = () => {
               value={title}
               fullWidth
               type="string"
-              onChange={(e) => setTitle(String(e.target.value))}
+              onChange={(e) =>
+                setFilters({ title: String(e.target.value), owner, status })
+              }
             />
             <TextField
               className="owner-search-input"
@@ -75,7 +81,9 @@ export const ContributionsPage: React.FC = () => {
               value={owner}
               fullWidth
               type="string"
-              onChange={(e) => setOwner(String(e.target.value))}
+              onChange={(e) =>
+                setFilters({ owner: String(e.target.value), title, status })
+              }
             />
             <TextField
               id="status-select-input"
@@ -83,7 +91,9 @@ export const ContributionsPage: React.FC = () => {
               label="Status"
               value={status}
               defaultValue={''}
-              onChange={(e) => setStatus(String(e.target.value))}
+              onChange={(e) =>
+                setFilters({ status: String(e.target.value), title, owner })
+              }
             >
               {statusOptions.map((option, index) => (
                 <MenuItem key={`${option}-${index}`} value={option}>
@@ -95,15 +105,17 @@ export const ContributionsPage: React.FC = () => {
           <Button
             variant="contained"
             size="medium"
-            onClick={() => {
-              setTitle('');
-              setOwner('');
-              setStatus('');
-            }}
+            onClick={handleClearFilters}
           >
             Clear filters
           </Button>
         </div>
+        {isLoading && (
+          <Box sx={{ display: 'flex' }}>
+            <CircularProgress />
+          </Box>
+        )}
+        {isError && <p>Error loading contributions</p>}
         {!contributions.length ? (
           <p>No contributions found</p>
         ) : (
@@ -158,7 +170,9 @@ export const ContributionsPage: React.FC = () => {
           </Box>
         )}
         <Typography>
-          Page: {skipParam / limit + 1} of {Math.ceil(totalCount / limit)}
+          {!contributions.length
+            ? ''
+            : `Page ${skipParam / limit + 1} of ${Math.ceil(totalCount / limit)}`}
         </Typography>
         <div
           className="pagination"
