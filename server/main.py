@@ -3,6 +3,9 @@ import re
 from contextlib import asynccontextmanager
 from enum import Enum
 from typing import Optional, List
+from dateutil import parser
+from datetime import datetime, timezone
+import pytz
 
 from fastapi import FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
@@ -48,6 +51,12 @@ class MatchType(str, Enum):
     all = "all"
 
 
+class ContributionStatus(str, Enum):
+    complete = "Complete"
+    scheduled = "Scheduled"
+    active = "Active"
+
+
 class ContributionFilter(str, Enum):
     id: Optional[str]  # equals
     title: Optional[str]  # contains
@@ -77,9 +86,11 @@ async def list_contributions(
     startAfter: Optional[str] = Query(None),
     endBefore: Optional[str] = Query(None),
     endAfter: Optional[str] = Query(None),
+    status: Optional[str] = Query(None),
     match: MatchType = Query(default=MatchType.all),
 ):
     contributions: list = DATA["contribution_data"]
+    print("line 92", contributions)
 
     all_ids = [] if match == MatchType.any else _ids(contributions)
     matching_ids = all_ids
@@ -90,6 +101,7 @@ async def list_contributions(
     matching_start_after = all_ids
     matching_end_before = all_ids
     matching_end_after = all_ids
+    matching_status = all_ids
 
     if id:
         matching_ids = _ids(
@@ -152,6 +164,46 @@ async def list_contributions(
         )
         print("EndAfter :", matching_end_after)
 
+    if status:
+        london = pytz.timezone("Europe/London")
+        datetime_now_adjusted = datetime.now().astimezone(london)
+        print("line 168", status)
+        if status == ContributionStatus.complete:
+            matching_status = _ids(
+                list(
+                    filter(
+                        lambda c: parser.isoparse(c["endTime"]).astimezone(london)
+                        < datetime_now_adjusted,
+                        contributions,
+                    )
+                )
+            )
+            print("Status :", matching_status)
+        elif status == ContributionStatus.scheduled:
+            matching_status = _ids(
+                list(
+                    filter(
+                        lambda c: parser.isoparse(c["startTime"]).astimezone(london)
+                        > datetime_now_adjusted,
+                        contributions,
+                    )
+                )
+            )
+            print("Status :", matching_status)
+        else:  # active
+            matching_status = _ids(
+                list(
+                    filter(
+                        lambda c: parser.isoparse(c["startTime"]).astimezone(london)
+                        < datetime_now_adjusted
+                        and parser.isoparse(c["endTime"]).astimezone(london)
+                        > datetime_now_adjusted,
+                        contributions,
+                    )
+                )
+            )
+            print("Status :", matching_status)
+
     matching_contribution_ids = []
     if match == MatchType.any:
         matching_contribution_ids = set(
@@ -164,6 +216,7 @@ async def list_contributions(
             + matching_end_before
             + matching_end_after
             + matching_owner
+            + matching_status
         )
     else:  # all
         matching_contribution_ids = list(
@@ -175,6 +228,7 @@ async def list_contributions(
             & set(matching_end_before)
             & set(matching_end_after)
             & set(matching_owner)
+            & set(matching_status)
         )
 
     matching_contributions = [

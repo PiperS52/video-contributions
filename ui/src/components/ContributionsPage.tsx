@@ -8,18 +8,18 @@ import CardContent from '@mui/material/CardContent';
 import Grid from '@mui/material/Grid2';
 import Button from '@mui/material/Button';
 import Pagination from '@mui/material/Pagination';
-import { Typography } from '@mui/material';
-import { set } from 'date-fns';
+import { MenuItem, Typography } from '@mui/material';
 
 export const ContributionsPage: React.FC = () => {
   const [skipParam, setSkipParam] = useState<number>(0);
   const limit = 14;
   const [title, setTitle] = useState<string>('');
   const [owner, setOwner] = useState<string>('');
+  const [status, setStatus] = useState<string>('');
 
   const { contributions, totalCount, isLoading, isError } =
     useGetContributionsQuery(
-      { title, owner, skip: skipParam, limit },
+      { title, owner, status, skip: skipParam, limit },
       {
         selectFromResult: ({ data, isLoading, isError }) => ({
           contributions: data?.contributions ?? [],
@@ -27,7 +27,6 @@ export const ContributionsPage: React.FC = () => {
           isLoading,
           isError,
         }),
-        // skip: !title,
         refetchOnMountOrArgChange: true,
       }
     );
@@ -39,10 +38,13 @@ export const ContributionsPage: React.FC = () => {
     if (owner) {
       setSkipParam(0);
     }
-  }, [title, owner]);
+    if (status) {
+      setSkipParam(0);
+    }
+  }, [title, owner, status]);
 
   console.log('contributions', contributions);
-  const statusOptions = ['Complete', 'Scheduled', 'Active'];
+  const statusOptions = ['', 'Complete', 'Scheduled', 'Active'];
 
   return (
     <>
@@ -75,6 +77,20 @@ export const ContributionsPage: React.FC = () => {
               type="string"
               onChange={(e) => setOwner(String(e.target.value))}
             />
+            <TextField
+              id="status-select-input"
+              select
+              label="Status"
+              value={status}
+              defaultValue={''}
+              onChange={(e) => setStatus(String(e.target.value))}
+            >
+              {statusOptions.map((option, index) => (
+                <MenuItem key={`${option}-${index}`} value={option}>
+                  {option}
+                </MenuItem>
+              ))}
+            </TextField>
           </Box>
           <Button
             variant="contained"
@@ -82,6 +98,7 @@ export const ContributionsPage: React.FC = () => {
             onClick={() => {
               setTitle('');
               setOwner('');
+              setStatus('');
             }}
           >
             Clear filters
