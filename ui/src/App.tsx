@@ -2,7 +2,7 @@ import './App.css';
 import { Provider } from 'react-redux';
 import { setupStore } from './store';
 import { setupListeners } from '@reduxjs/toolkit/query';
-import { ContributionsPage } from './components/ContributionsPage';
+import { ContributionsPage } from './pages/ContributionsPage';
 import { Navigate, Route, Routes } from 'react-router';
 
 const store = setupStore();

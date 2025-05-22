@@ -4,7 +4,7 @@ from contextlib import asynccontextmanager
 from enum import Enum
 from typing import Optional, List
 from dateutil import parser
-from datetime import datetime, timezone
+from datetime import datetime
 import pytz
 
 from fastapi import FastAPI, Query
@@ -90,7 +90,6 @@ async def list_contributions(
     match: MatchType = Query(default=MatchType.all),
 ):
     contributions: list = DATA["contribution_data"]
-    print("line 92", contributions)
 
     all_ids = [] if match == MatchType.any else _ids(contributions)
     matching_ids = all_ids
@@ -167,7 +166,6 @@ async def list_contributions(
     if status:
         london = pytz.timezone("Europe/London")
         datetime_now_adjusted = datetime.now().astimezone(london)
-        print("line 168", status)
         if status == ContributionStatus.complete:
             matching_status = _ids(
                 list(

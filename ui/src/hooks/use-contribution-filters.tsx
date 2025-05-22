@@ -2,9 +2,9 @@ import { useCallback, useMemo } from 'react';
 import { useSearchParams } from 'react-router';
 
 export type ContributionFilters = {
-  title?: string | null;
-  owner?: string | null;
-  status?: string | null;
+  title?: string;
+  owner?: string;
+  status?: string;
 };
 
 export function useContributionFilters() {
@@ -18,7 +18,7 @@ export function useContributionFilters() {
     (filters: ContributionFilters) => {
       setSearchParams((params) => {
         Object.entries(filters).forEach(([key, value]) => {
-          if (value === null) {
+          if (value === null || value === undefined || value === '') {
             params.delete(key);
           } else if (value) {
             params.set(key, value);
